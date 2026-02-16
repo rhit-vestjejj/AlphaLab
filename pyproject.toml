@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alphalab"
+version = "0.1.0"
+description = "Local systematic futures research program."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pandas",
+  "numpy",
+  "requests",
+  "pydantic",
+  "pyyaml",
+  "sqlalchemy",
+  "typer",
+  "matplotlib",
+  "pyarrow",
+]
+
+[project.optional-dependencies]
+dev = [
+  "black>=24.0.0",
+  "ruff>=0.6.0",
+  "build>=1.2.0",
+]
+
+[project.scripts]
+alphalab = "alphalab.cli:main"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["alphalab"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["alphalab"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["alphalab*"]

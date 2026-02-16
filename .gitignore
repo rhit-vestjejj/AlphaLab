@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.py[cod]
+.env
+*.egg-info/
+build/
+dist/
+.ruff_cache/
+.pytest_cache/
+.DS_Store
+
+# Local runtime state
+alphalab/data/cache/*.parquet
+alphalab/data/*.sqlite
+alphalab/artifacts/*
+!alphalab/artifacts/.gitkeep
+!alphalab/data/cache/.gitkeep

@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate Tag Matches Project Version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PROJECT_VERSION="$(python - <<'PY'
+          import tomllib
+          with open("pyproject.toml", "rb") as handle:
+              data = tomllib.load(handle)
+          print(data["project"]["version"])
+          PY
+          )"
+          echo "Tag version: ${TAG_VERSION}"
+          echo "Project version: ${PROJECT_VERSION}"
+          if [ "${TAG_VERSION}" != "${PROJECT_VERSION}" ]; then
+            echo "Tag version does not match pyproject version."
+            exit 1
+          fi
+
+      - name: Validate Changelog Contains Version Section
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          grep -q "^## \[${TAG_VERSION}\]" CHANGELOG.md
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Quality Gate
+        run: make check
+
+      - name: Build Distribution Artifacts
+        run: python -m build
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.ref_name }}
+          path: dist/*
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
