@@ -16,6 +16,8 @@ dependencies = [
   "pyyaml",
   "sqlalchemy",
   "typer",
+  "fastapi",
+  "uvicorn",
   "matplotlib",
   "pyarrow",
 ]
@@ -25,10 +27,12 @@ dev = [
   "black>=24.0.0",
   "ruff>=0.6.0",
   "build>=1.2.0",
+  "httpx>=0.27.0",
 ]
 
 [project.scripts]
 alphalab = "alphalab.cli:main"
+alphalab-api = "alphalab.api.main:main"
 
 [tool.black]
 line-length = 100

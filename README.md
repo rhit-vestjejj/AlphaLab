@@ -13,6 +13,7 @@ It is a research engine, not a live trading or broker execution system.
 - Run robustness suites (walk-forward, parameter grid, cost stress, regime splits).
 - Persist and query experiments in SQLite (`run`, `list`, `show`, re-run by `--experiment`).
 - Emit run manifests and typed failure exit codes for operational reliability.
+- Expose core workflows over a local FastAPI service for frontend/API clients.
 
 ## Quickstart
 
@@ -30,6 +31,20 @@ It is a research engine, not a live trading or broker execution system.
    - `./.venv/bin/alphalab show --experiment <id> --db-path alphalab/data/experiments.sqlite`
 5. Run robustness on an experiment.
    - `./.venv/bin/alphalab robustness --experiment <id> --db-path alphalab/data/experiments.sqlite`
+6. Start the local API server.
+   - `./.venv/bin/alphalab-api`
+   - Open `http://127.0.0.1:8020/docs`
+   - If `8020` is occupied, the launcher auto-selects the next free port.
+
+## API Endpoints
+
+- `GET /health`
+- `GET /experiments?db_path=...&limit=...`
+- `GET /experiments/{experiment_id}?db_path=...`
+- `POST /runs` with JSON body:
+  - `{"config_path":"...","db_path":"..."}` or `{"source_experiment_id":"...","db_path":"..."}`
+- `POST /robustness` with JSON body:
+  - `{"experiment_id":"...","db_path":"..."}`
 
 ## Product Status
 
@@ -41,6 +56,7 @@ It is a research engine, not a live trading or broker execution system.
 - [x] Robustness suite + artifacts
 - [x] Experiment tracking and reproducible re-runs
 - [x] CLI command surface (`run`, `robustness`, `list`, `show`)
+- [x] Local API layer for frontend integration
 - [x] CI, release workflow, and quality gates
 
 ## Documentation

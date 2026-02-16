@@ -23,8 +23,15 @@ Current scope (V1):
   - Provider retries/schema validation
   - Cache range coverage behavior
   - CLI run/list/show/robustness flow
+  - API health/run/list/show workflow
   - Typed exit-code and failure-manifest behavior
 - Typer CLI with `run`, `robustness`, `list`, `show` command surface
+- FastAPI service with:
+  - `GET /health`
+  - `GET /experiments`
+  - `GET /experiments/{experiment_id}`
+  - `POST /runs`
+  - `POST /robustness`
 
 Master spec status:
 - [x] Pull ES/CL/GC daily futures from EODHD
@@ -41,6 +48,7 @@ CLI examples:
 - `./.venv/bin/alphalab robustness --experiment exp_001 --db-path alphalab/data/experiments.sqlite`
 - `./.venv/bin/alphalab list --db-path alphalab/data/experiments.sqlite`
 - `./.venv/bin/alphalab show --experiment exp_001 --db-path alphalab/data/experiments.sqlite`
+- `./.venv/bin/alphalab-api` (defaults to `127.0.0.1:8020`, auto-falls forward if occupied)
 
 Quality workflow:
 - Install dev tooling: `make install-dev`

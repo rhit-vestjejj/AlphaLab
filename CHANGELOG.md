@@ -7,6 +7,14 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ## [Unreleased]
 
 ### Added
+- FastAPI API layer for local frontend/client integration:
+  - `GET /health`
+  - `GET /experiments`
+  - `GET /experiments/{experiment_id}`
+  - `POST /runs`
+  - `POST /robustness`
+- Service-layer workflow module shared by API use-cases.
+- API integration tests using ASGI transport.
 - Typed robustness validation errors (`RobustnessError`) for deterministic CLI exit handling.
 - CLI failure-path integration tests covering typed exit codes and failure manifest generation.
 - Expanded top-level documentation with quickstart and full-product status checklist.

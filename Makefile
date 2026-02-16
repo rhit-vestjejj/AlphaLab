@@ -1,4 +1,4 @@
-.PHONY: install-dev format format-check lint test build-dist release-check check
+.PHONY: install-dev format format-check lint test build-dist release-check check run-api
 
 VERSION := $(shell python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
 
@@ -24,3 +24,6 @@ release-check: check
 	@grep -q "^## \[$(VERSION)\]" CHANGELOG.md || (echo "CHANGELOG missing version $(VERSION) section" && exit 1)
 
 check: format-check lint test
+
+run-api:
+	alphalab-api
