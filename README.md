@@ -45,6 +45,10 @@ It is a research engine, not a live trading or broker execution system.
   - `{"config_path":"...","db_path":"..."}` or `{"source_experiment_id":"...","db_path":"..."}`
 - `POST /robustness` with JSON body:
   - `{"experiment_id":"...","db_path":"..."}`
+- `POST /jobs/runs` (enqueue run, returns job id immediately)
+- `POST /jobs/robustness` (enqueue robustness, returns job id immediately)
+- `GET /jobs/{job_id}` (poll status/result/error)
+- `GET /jobs?limit=...` (list recent jobs)
 
 ## Product Status
 
@@ -57,6 +61,7 @@ It is a research engine, not a live trading or broker execution system.
 - [x] Experiment tracking and reproducible re-runs
 - [x] CLI command surface (`run`, `robustness`, `list`, `show`)
 - [x] Local API layer for frontend integration
+- [x] Async API job queue for long-running workloads
 - [x] CI, release workflow, and quality gates
 
 ## Documentation

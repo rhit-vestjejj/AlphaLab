@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -92,3 +93,25 @@ class RobustnessResponse(BaseModel):
     aggregated_metrics: dict[str, float]
     artifact_paths: list[str]
     manifest_path: str
+
+
+class JobErrorResponse(BaseModel):
+    """Background job error payload."""
+
+    error_code: str
+    message: str
+    traceback: str | None = None
+
+
+class JobRecordResponse(BaseModel):
+    """Background job status payload."""
+
+    job_id: str
+    job_type: Literal["run", "robustness"]
+    status: Literal["queued", "running", "succeeded", "failed"]
+    submitted_at: datetime
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    request: dict[str, Any]
+    result: dict[str, Any] | None = None
+    error: JobErrorResponse | None = None

@@ -32,6 +32,10 @@ Current scope (V1):
   - `GET /experiments/{experiment_id}`
   - `POST /runs`
   - `POST /robustness`
+  - `POST /jobs/runs`
+  - `POST /jobs/robustness`
+  - `GET /jobs/{job_id}`
+  - `GET /jobs`
 
 Master spec status:
 - [x] Pull ES/CL/GC daily futures from EODHD

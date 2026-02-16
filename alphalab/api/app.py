@@ -5,20 +5,30 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 
+from alphalab.api.jobs import InMemoryJobQueue, JobRecord
 from alphalab.api.schemas import (
     ErrorResponse,
     ExperimentDetailResponse,
     ExperimentSummaryResponse,
     HealthResponse,
+    JobErrorResponse,
+    JobRecordResponse,
     RobustnessRequest,
     RobustnessResponse,
     RunRequest,
     RunResponse,
 )
-from alphalab.core.services import get_experiment, list_experiments, run_experiment, run_robustness
+from alphalab.core.services import (
+    RobustnessOutcome,
+    RunOutcome,
+    get_experiment,
+    list_experiments,
+    run_experiment,
+    run_robustness,
+)
 from alphalab.core.utils.env import load_dotenv
 from alphalab.core.utils.errors import (
     AlphaLabError,
@@ -37,6 +47,7 @@ from alphalab.core.utils.logging import configure_logging, get_logger
 DEFAULT_DB_PATH = Path("alphalab/data/experiments.sqlite")
 DB_PATH_QUERY = Query(default=DEFAULT_DB_PATH)
 LIMIT_QUERY = Query(default=50, ge=1, le=500)
+JOB_LIMIT_QUERY = Query(default=100, ge=1, le=500)
 _LOGGER_NAME = "alphalab.api.app"
 
 
@@ -78,6 +89,54 @@ def create_app() -> FastAPI:
     )
     logger = get_logger(_LOGGER_NAME)
     logger.info("AlphaLab API startup complete.")
+    job_queue = InMemoryJobQueue(max_workers=2)
+
+    def _run_outcome_to_payload(outcome: RunOutcome) -> dict[str, Any]:
+        """Serialize run outcome to JSON-ready dictionary."""
+        return {
+            "experiment_id": outcome.experiment_id,
+            "strategy_name": outcome.strategy_name,
+            "symbols": list(outcome.symbols),
+            "metrics": dict(outcome.metrics),
+            "experiments_db": str(outcome.experiment_db_path),
+            "artifact_paths": list(outcome.artifact_paths),
+            "source_experiment_id": outcome.source_experiment_id,
+            "manifest_path": str(outcome.manifest_path),
+        }
+
+    def _robustness_outcome_to_payload(outcome: RobustnessOutcome) -> dict[str, Any]:
+        """Serialize robustness outcome to JSON-ready dictionary."""
+        return {
+            "experiment_id": outcome.experiment_id,
+            "strategy_name": outcome.strategy_name,
+            "report_path": str(outcome.report_path),
+            "summary_json_path": str(outcome.summary_json_path),
+            "baseline_metrics": dict(outcome.baseline_metrics),
+            "aggregated_metrics": dict(outcome.aggregated_metrics),
+            "artifact_paths": list(outcome.artifact_paths),
+            "manifest_path": str(outcome.manifest_path),
+        }
+
+    def _job_record_to_response(record: JobRecord) -> JobRecordResponse:
+        """Convert in-memory job record to API response schema."""
+        error: JobErrorResponse | None = None
+        if record.error_code is not None:
+            error = JobErrorResponse(
+                error_code=record.error_code,
+                message=record.error_message or "",
+                traceback=record.error_traceback,
+            )
+        return JobRecordResponse(
+            job_id=record.job_id,
+            job_type=record.job_type,
+            status=record.status,
+            submitted_at=record.submitted_at,
+            started_at=record.started_at,
+            finished_at=record.finished_at,
+            request=dict(record.request),
+            result=None if record.result is None else dict(record.result),
+            error=error,
+        )
 
     @app.exception_handler(AlphaLabError)
     async def _handle_alphalab_error(_: Any, exc: AlphaLabError) -> JSONResponse:
@@ -171,5 +230,49 @@ def create_app() -> FastAPI:
             artifact_paths=list(outcome.artifact_paths),
             manifest_path=str(outcome.manifest_path),
         )
+
+    @app.post("/jobs/runs", response_model=JobRecordResponse, status_code=202)
+    async def enqueue_run(request: RunRequest) -> JobRecordResponse:
+        """Enqueue a backtest run job and return queued metadata."""
+        job = job_queue.submit(
+            job_type="run",
+            request=request.model_dump(mode="json"),
+            task=lambda: _run_outcome_to_payload(
+                run_experiment(
+                    config_path=request.config_path,
+                    source_experiment_id=request.source_experiment_id,
+                    db_path=request.db_path,
+                )
+            ),
+        )
+        return _job_record_to_response(job)
+
+    @app.post("/jobs/robustness", response_model=JobRecordResponse, status_code=202)
+    async def enqueue_robustness(request: RobustnessRequest) -> JobRecordResponse:
+        """Enqueue a robustness job and return queued metadata."""
+        job = job_queue.submit(
+            job_type="robustness",
+            request=request.model_dump(mode="json"),
+            task=lambda: _robustness_outcome_to_payload(
+                run_robustness(
+                    experiment_id=request.experiment_id,
+                    db_path=request.db_path,
+                )
+            ),
+        )
+        return _job_record_to_response(job)
+
+    @app.get("/jobs/{job_id}", response_model=JobRecordResponse)
+    async def get_job(job_id: str) -> JobRecordResponse:
+        """Get one background job by id."""
+        record = job_queue.get(job_id)
+        if record is None:
+            raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found.")
+        return _job_record_to_response(record)
+
+    @app.get("/jobs", response_model=list[JobRecordResponse])
+    async def list_jobs(limit: int = JOB_LIMIT_QUERY) -> list[JobRecordResponse]:
+        """List submitted background jobs."""
+        return [_job_record_to_response(record) for record in job_queue.list(limit=limit)]
 
     return app

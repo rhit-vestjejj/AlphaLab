@@ -13,6 +13,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
   - `GET /experiments/{experiment_id}`
   - `POST /runs`
   - `POST /robustness`
+- Async API job queue endpoints for non-blocking execution:
+  - `POST /jobs/runs`
+  - `POST /jobs/robustness`
+  - `GET /jobs/{job_id}`
+  - `GET /jobs`
 - Service-layer workflow module shared by API use-cases.
 - API integration tests using ASGI transport.
 - Typed robustness validation errors (`RobustnessError`) for deterministic CLI exit handling.
