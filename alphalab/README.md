@@ -27,6 +27,7 @@ Current scope (V1):
   - Typed exit-code and failure-manifest behavior
 - Typer CLI with `run`, `robustness`, `list`, `show` command surface
 - FastAPI service with:
+  - `GET /` (dashboard UI)
   - `GET /health`
   - `GET /experiments`
   - `GET /experiments/{experiment_id}`
@@ -53,6 +54,7 @@ CLI examples:
 - `./.venv/bin/alphalab list --db-path alphalab/data/experiments.sqlite`
 - `./.venv/bin/alphalab show --experiment exp_001 --db-path alphalab/data/experiments.sqlite`
 - `./.venv/bin/alphalab-api` (defaults to `127.0.0.1:8020`, auto-falls forward if occupied)
+- dashboard at `http://127.0.0.1:8020/`
 
 Quality workflow:
 - Install dev tooling: `make install-dev`

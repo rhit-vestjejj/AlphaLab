@@ -52,3 +52,6 @@ known-first-party = ["alphalab"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["alphalab*"]
+
+[tool.setuptools.package-data]
+alphalab = ["web/*.html", "web/assets/*.css", "web/assets/*.js"]

@@ -52,6 +52,22 @@ class TestApiIntegration(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(payload["status"], "ok")
             self.assertEqual(payload["service"], "alphalab-api")
 
+    async def test_dashboard_routes(self) -> None:
+        app = create_app()
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            index_response = await client.get("/")
+            self.assertEqual(index_response.status_code, 200, msg=index_response.text)
+            self.assertIn("AlphaLab Control Room", index_response.text)
+
+            css_response = await client.get("/assets/app.css")
+            self.assertEqual(css_response.status_code, 200, msg=css_response.text)
+            self.assertIn("--bg-cream", css_response.text)
+
+            js_response = await client.get("/assets/app.js")
+            self.assertEqual(js_response.status_code, 200, msg=js_response.text)
+            self.assertIn("enqueueRun", js_response.text)
+
     async def test_run_list_and_show_workflow(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

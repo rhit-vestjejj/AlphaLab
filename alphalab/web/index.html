@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AlphaLab Control Room</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+  </head>
+  <body>
+    <div class="ambient-shape ambient-a"></div>
+    <div class="ambient-shape ambient-b"></div>
+    <header class="hero reveal">
+      <div>
+        <p class="eyebrow">Systematic Futures Research</p>
+        <h1>AlphaLab Control Room</h1>
+        <p class="subhead">
+          Queue experiments, watch jobs, and inspect portfolio diagnostics in one local dashboard.
+        </p>
+      </div>
+      <div class="health-badge" id="healthBadge">API: checking...</div>
+    </header>
+
+    <main class="layout">
+      <section class="panel reveal" style="--delay: 0.06s">
+        <h2>Run Queue</h2>
+        <label for="configPath">Config Path</label>
+        <input id="configPath" type="text" value="alphalab/configs/example.yaml" />
+
+        <label for="dbPath">DB Path</label>
+        <input id="dbPath" type="text" value="alphalab/data/experiments.sqlite" />
+
+        <div class="button-row">
+          <button id="enqueueRunBtn" class="btn primary">Queue Run</button>
+          <button id="refreshAllBtn" class="btn subtle">Refresh All</button>
+        </div>
+        <p class="hint">
+          Select an experiment below, then run robustness from the experiment panel.
+        </p>
+        <pre id="actionLog" class="log" aria-live="polite"></pre>
+      </section>
+
+      <section class="panel reveal" style="--delay: 0.12s">
+        <div class="panel-heading">
+          <h2>Jobs</h2>
+          <button id="refreshJobsBtn" class="btn subtle">Refresh</button>
+        </div>
+        <div id="jobsList" class="list"></div>
+      </section>
+
+      <section class="panel reveal" style="--delay: 0.18s">
+        <div class="panel-heading">
+          <h2>Experiments</h2>
+          <button id="refreshExperimentsBtn" class="btn subtle">Refresh</button>
+        </div>
+        <div id="experimentsList" class="list"></div>
+      </section>
+
+      <section class="panel wide reveal" style="--delay: 0.24s">
+        <div class="panel-heading">
+          <h2>Experiment Detail</h2>
+          <button id="enqueueRobustnessBtn" class="btn primary" disabled>Queue Robustness</button>
+        </div>
+        <div id="detailEmpty" class="empty">Pick an experiment to inspect metrics and artifacts.</div>
+        <div id="detailContent" class="hidden">
+          <p><strong>ID:</strong> <span id="detailId"></span></p>
+          <p><strong>Strategy:</strong> <span id="detailStrategy"></span></p>
+          <p><strong>Timestamp:</strong> <span id="detailTimestamp"></span></p>
+          <h3>Metrics</h3>
+          <div id="metricsTable"></div>
+          <h3>Artifacts</h3>
+          <ul id="artifactsList" class="artifact-list"></ul>
+          <h3>Config YAML</h3>
+          <pre id="configYaml" class="log"></pre>
+        </div>
+      </section>
+    </main>
+
+    <script src="/assets/app.js" defer></script>
+  </body>
+</html>

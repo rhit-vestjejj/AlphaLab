@@ -35,6 +35,9 @@ It is a research engine, not a live trading or broker execution system.
    - `./.venv/bin/alphalab-api`
    - Open `http://127.0.0.1:8020/docs`
    - If `8020` is occupied, the launcher auto-selects the next free port.
+7. Open the dashboard frontend.
+   - `http://127.0.0.1:8020/`
+   - Queue runs, poll jobs, and inspect experiment detail visually.
 
 ## API Endpoints
 
@@ -49,6 +52,8 @@ It is a research engine, not a live trading or broker execution system.
 - `POST /jobs/robustness` (enqueue robustness, returns job id immediately)
 - `GET /jobs/{job_id}` (poll status/result/error)
 - `GET /jobs?limit=...` (list recent jobs)
+- `GET /` (dashboard UI)
+- `GET /assets/*` (dashboard assets)
 
 ## Product Status
 

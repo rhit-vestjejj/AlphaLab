@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 from alphalab.api.jobs import InMemoryJobQueue, JobRecord
 from alphalab.api.schemas import (
@@ -49,6 +49,9 @@ DB_PATH_QUERY = Query(default=DEFAULT_DB_PATH)
 LIMIT_QUERY = Query(default=50, ge=1, le=500)
 JOB_LIMIT_QUERY = Query(default=100, ge=1, le=500)
 _LOGGER_NAME = "alphalab.api.app"
+_WEB_DIR = Path(__file__).resolve().parents[1] / "web"
+_WEB_INDEX_PATH = _WEB_DIR / "index.html"
+_WEB_ASSETS_DIR = _WEB_DIR / "assets"
 
 
 def _http_status_for_alphalab_error(exc: AlphaLabError) -> int:
@@ -72,6 +75,16 @@ def _http_status_for_alphalab_error(exc: AlphaLabError) -> int:
     return 500
 
 
+def _read_web_text(path: Path) -> str:
+    """Read one frontend text asset."""
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to read frontend asset: {path}"
+        ) from exc
+
+
 def create_app() -> FastAPI:
     """
     Build and return the AlphaLab FastAPI app.
@@ -87,6 +100,7 @@ def create_app() -> FastAPI:
         version="0.1.0",
         description="Programmatic API for AlphaLab local research workflows.",
     )
+
     logger = get_logger(_LOGGER_NAME)
     logger.info("AlphaLab API startup complete.")
     job_queue = InMemoryJobQueue(max_workers=2)
@@ -161,6 +175,29 @@ def create_app() -> FastAPI:
     async def health() -> HealthResponse:
         """Return API health metadata."""
         return HealthResponse()
+
+    @app.get("/", include_in_schema=False, response_class=HTMLResponse)
+    async def dashboard() -> HTMLResponse:
+        """Serve the local frontend dashboard page."""
+        if not _WEB_INDEX_PATH.exists():
+            raise HTTPException(status_code=404, detail="Dashboard frontend not found.")
+        return HTMLResponse(_read_web_text(_WEB_INDEX_PATH))
+
+    @app.get("/assets/app.css", include_in_schema=False)
+    async def dashboard_css() -> Response:
+        """Serve dashboard stylesheet."""
+        css_path = _WEB_ASSETS_DIR / "app.css"
+        if not css_path.exists():
+            raise HTTPException(status_code=404, detail="Dashboard stylesheet not found.")
+        return Response(_read_web_text(css_path), media_type="text/css")
+
+    @app.get("/assets/app.js", include_in_schema=False)
+    async def dashboard_js() -> Response:
+        """Serve dashboard JavaScript bundle."""
+        js_path = _WEB_ASSETS_DIR / "app.js"
+        if not js_path.exists():
+            raise HTTPException(status_code=404, detail="Dashboard script not found.")
+        return Response(_read_web_text(js_path), media_type="application/javascript")
 
     @app.get("/experiments", response_model=list[ExperimentSummaryResponse])
     async def experiments(

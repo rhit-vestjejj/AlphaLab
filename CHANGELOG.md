@@ -18,6 +18,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
   - `POST /jobs/robustness`
   - `GET /jobs/{job_id}`
   - `GET /jobs`
+- Local frontend dashboard scaffold served by FastAPI:
+  - `GET /` dashboard page
+  - queue run/robustness jobs
+  - live job polling
+  - experiment list/detail view
 - Service-layer workflow module shared by API use-cases.
 - API integration tests using ASGI transport.
 - Typed robustness validation errors (`RobustnessError`) for deterministic CLI exit handling.
